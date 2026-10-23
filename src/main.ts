@@ -15,6 +15,13 @@ import {
   listarItensCarrinho,
   removerDoCarrinho,
 } from "./carrinho";
+import {
+  finalizarPedido,
+  listarPedidos,
+  listarPedidosPorCliente,
+  removerProdutoDoCatalogo,
+} from "./pedidos";
+import { Pedido } from "./types";
 
 function titulo(texto: string): void {
   console.log(`\n=== ${texto} ===`);
@@ -147,7 +154,62 @@ function demonstrarCarrinho(): void {
   testarInvalido("remover item que não está no carrinho", () => removerDoCarrinho(1, 5));
 }
 
+// ---------- Sprint 4: pedidos ----------
+function mostrarPedido(pedido: Pedido): void {
+  console.log(`Pedido #${pedido.id} | cliente ${pedido.clienteId} | ${pedido.data.toLocaleString("pt-BR")}`);
+  console.table(pedido.itens);
+  console.log(`Total do pedido: R$ ${pedido.total.toFixed(2)}`);
+}
+
+function resumirPedidos(lista: Pedido[]): object[] {
+  return lista.map((p) => ({ id: p.id, clienteId: p.clienteId, itens: p.itens.length, total: p.total }));
+}
+
+function demonstrarPedidos(): void {
+  titulo("Finalizando o pedido do cliente 1");
+  console.log(`Estoque do produto 1 antes: ${buscarProdutoPorId(1)?.estoque}`);
+  const pedido1 = finalizarPedido(1);
+  mostrarPedido(pedido1);
+  console.log(`Estoque do produto 1 depois: ${buscarProdutoPorId(1)?.estoque}`);
+  console.log(`Itens no carrinho do cliente 1 após a compra: ${listarItensCarrinho(1).length}`);
+
+  titulo("Finalizando o pedido do cliente 2");
+  mostrarPedido(finalizarPedido(2));
+
+  titulo("O pedido guarda o preço praticado na compra");
+  atualizarProduto(1, { preco: 300 });
+  console.log(`Preço atual do produto 1 no catálogo: R$ ${buscarProdutoPorId(1)?.preco}`);
+  console.log(`Preço do produto 1 no pedido #${pedido1.id}: R$ ${pedido1.itens[0].precoUnitario}`);
+
+  titulo("Consulta de pedidos");
+  console.log("Todos os pedidos:");
+  console.table(resumirPedidos(listarPedidos()));
+  console.log("Pedidos do cliente 1:");
+  console.table(resumirPedidos(listarPedidosPorCliente(1)));
+
+  titulo("Remoção de produto que não está em nenhum pedido");
+  cadastrarProduto({ id: 8, nome: "Produto Temporário", categoria: "Teste", preco: 10, estoque: 1 });
+  console.log("Removido:", removerProdutoDoCatalogo(8));
+
+  titulo("Pedidos: situações inválidas");
+  testarInvalido("finalizar sem itens", () => finalizarPedido(1));
+  testarInvalido("cliente inexistente", () => finalizarPedido(99));
+  testarInvalido("consultar pedidos de cliente inexistente", () => listarPedidosPorCliente(99));
+  testarInvalido("remover produto que já está em um pedido", () => removerProdutoDoCatalogo(1));
+
+  titulo("Finalização atômica: um item sem estoque cancela a compra inteira");
+  adicionarAoCarrinho(3, 4, 10); // 10 webcams (estoque 12)
+  adicionarAoCarrinho(3, 5, 5); // 5 headsets (estoque 10)
+  atualizarProduto(5, { estoque: 2 }); // simula outra venda que consumiu o estoque
+  const pedidosAntes = listarPedidos().length;
+  testarInvalido("item sem estoque suficiente", () => finalizarPedido(3));
+  console.log(`Estoque do produto 4 (deve continuar 12): ${buscarProdutoPorId(4)?.estoque}`);
+  console.log(`Pedidos registrados: antes ${pedidosAntes}, depois ${listarPedidos().length}`);
+  console.log(`Itens ainda no carrinho do cliente 3: ${listarItensCarrinho(3).length}`);
+}
+
 console.log("Mini E-commerce");
 demonstrarProdutos();
 demonstrarClientes();
 demonstrarCarrinho();
+demonstrarPedidos();
