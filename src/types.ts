@@ -20,7 +20,7 @@ export type ItemCarrinho = {
 };
 
 // Item de pedido guarda o preço praticado no momento da compra,
-// assi mudanças futuras no catálogo não alterem pedidos já concluídos.
+// para que mudanças futuras no catálogo não alterem pedidos antigos.
 export type ItemPedido = {
   produtoId: number;
   nome: string;
@@ -34,4 +34,19 @@ export type Pedido = {
   itens: ItemPedido[];
   total: number;
   data: Date;
+};
+
+// Cada cliente tem o seu próprio carrinho.
+export type Carrinho = {
+  clienteId: number;
+  itens: ItemCarrinho[];
+};
+
+// Item do carrinho com os dados do produto e o subtotal já calculados (para exibição).
+export type LinhaCarrinho = {
+  produtoId: number;
+  nome: string;
+  precoUnitario: number;
+  quantidade: number;
+  subtotal: number;
 };
