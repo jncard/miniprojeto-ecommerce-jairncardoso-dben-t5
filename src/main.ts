@@ -7,7 +7,14 @@ import {
   listarProdutos,
   removerProduto,
 } from "./produtos";
-import { clientes } from "./clientes";
+import { buscarClientePorId, cadastrarCliente, listarClientes } from "./clientes";
+import {
+  adicionarAoCarrinho,
+  alterarQuantidade,
+  calcularTotal,
+  listarItensCarrinho,
+  removerDoCarrinho,
+} from "./carrinho";
 
 function titulo(texto: string): void {
   console.log(`\n=== ${texto} ===`);
@@ -24,53 +31,123 @@ function testarInvalido(descricao: string, acao: () => void): void {
   }
 }
 
-console.log("Mini E-commerce");
-console.log(`Clientes cadastrados: ${clientes.length}`);
+function mostrarCarrinho(clienteId: number): void {
+  console.table(listarItensCarrinho(clienteId));
+  console.log(`Total do carrinho do cliente ${clienteId}: R$ ${calcularTotal(clienteId).toFixed(2)}`);
+}
 
 // ---------- Sprint 2: produtos ----------
-titulo("Catálogo inicial");
-console.table(listarProdutos());
+function demonstrarProdutos(): void {
+  titulo("Catálogo inicial");
+  console.table(listarProdutos());
 
-titulo("Cadastro de produto");
-const novo = cadastrarProduto({
-  id: 6,
-  nome: "  Cadeira Ergonômica ",
-  categoria: "Móveis",
-  preco: 1200,
-  estoque: 5,
-});
-console.log("Cadastrado:", novo);
+  titulo("Cadastro de produto");
+  console.log("Cadastrado:", cadastrarProduto({
+    id: 6,
+    nome: "  Cadeira Ergonômica ",
+    categoria: "Móveis",
+    preco: 1200,
+    estoque: 5,
+  }));
 
-titulo("Busca por id");
-console.log("Produto 3:", buscarProdutoPorId(3));
-console.log("Produto 99:", buscarProdutoPorId(99));
+  titulo("Busca por id");
+  console.log("Produto 3:", buscarProdutoPorId(3));
+  console.log("Produto 99:", buscarProdutoPorId(99));
 
-titulo("Busca por parte do nome ('mo')");
-console.table(buscarProdutosPorNome("mo"));
+  titulo("Busca por parte do nome ('mo')");
+  console.table(buscarProdutosPorNome("mo"));
 
-titulo("Filtro por categoria ('periféricos')");
-console.table(filtrarProdutosPorCategoria("periféricos"));
+  titulo("Filtro por categoria ('periféricos')");
+  console.table(filtrarProdutosPorCategoria("periféricos"));
 
-titulo("Atualização do produto 2 (preço e estoque)");
-console.log("Atualizado:", atualizarProduto(2, { preco: 79.9, estoque: 25 }));
+  titulo("Atualização do produto 2 (preço e estoque)");
+  console.log("Atualizado:", atualizarProduto(2, { preco: 79.9, estoque: 25 }));
 
-titulo("Remoção do produto 6");
-console.log("Removido:", removerProduto(6));
-console.log(`Total de produtos agora: ${listarProdutos().length}`);
+  titulo("Remoção do produto 6");
+  console.log("Removido:", removerProduto(6));
+  console.log(`Total de produtos agora: ${listarProdutos().length}`);
 
-titulo("Situações inválidas");
-testarInvalido("preço negativo", () =>
-  cadastrarProduto({ id: 7, nome: "Produto X", categoria: "Teste", preco: -10, estoque: 1 })
-);
-testarInvalido("nome vazio", () =>
-  cadastrarProduto({ id: 7, nome: "   ", categoria: "Teste", preco: 10, estoque: 1 })
-);
-testarInvalido("estoque negativo", () =>
-  cadastrarProduto({ id: 7, nome: "Produto X", categoria: "Teste", preco: 10, estoque: -1 })
-);
-testarInvalido("id repetido", () =>
-  cadastrarProduto({ id: 1, nome: "Duplicado", categoria: "Teste", preco: 10, estoque: 1 })
-);
-testarInvalido("atualizar produto inexistente", () => atualizarProduto(99, { preco: 10 }));
-testarInvalido("atualizar com preço zero", () => atualizarProduto(1, { preco: 0 }));
-testarInvalido("remover produto inexistente", () => removerProduto(99));
+  titulo("Produtos: situações inválidas");
+  testarInvalido("preço negativo", () =>
+    cadastrarProduto({ id: 7, nome: "Produto X", categoria: "Teste", preco: -10, estoque: 1 })
+  );
+  testarInvalido("nome vazio", () =>
+    cadastrarProduto({ id: 7, nome: "   ", categoria: "Teste", preco: 10, estoque: 1 })
+  );
+  testarInvalido("estoque negativo", () =>
+    cadastrarProduto({ id: 7, nome: "Produto X", categoria: "Teste", preco: 10, estoque: -1 })
+  );
+  testarInvalido("id repetido", () =>
+    cadastrarProduto({ id: 1, nome: "Duplicado", categoria: "Teste", preco: 10, estoque: 1 })
+  );
+  testarInvalido("atualizar produto inexistente", () => atualizarProduto(99, { preco: 10 }));
+  testarInvalido("atualizar com preço zero", () => atualizarProduto(1, { preco: 0 }));
+  testarInvalido("remover produto inexistente", () => removerProduto(99));
+}
+
+// ---------- Sprint 3: clientes ----------
+function demonstrarClientes(): void {
+  titulo("Clientes iniciais");
+  console.table(listarClientes());
+
+  titulo("Cadastro de cliente");
+  console.log("Cadastrado:", cadastrarCliente({
+    id: 4,
+    nome: " Daniel Rocha ",
+    email: "daniel.rocha@email.com",
+  }));
+
+  titulo("Busca de cliente por id");
+  console.log("Cliente 2:", buscarClientePorId(2));
+  console.log("Cliente 99:", buscarClientePorId(99));
+
+  titulo("Clientes: situações inválidas");
+  testarInvalido("id repetido", () =>
+    cadastrarCliente({ id: 1, nome: "Outro", email: "outro@email.com" })
+  );
+  testarInvalido("e-mail repetido", () =>
+    cadastrarCliente({ id: 9, nome: "Outro", email: "ANA.SOUZA@email.com" })
+  );
+  testarInvalido("nome vazio", () => cadastrarCliente({ id: 9, nome: "  ", email: "x@email.com" }));
+  testarInvalido("e-mail vazio", () => cadastrarCliente({ id: 9, nome: "Fulano", email: "" }));
+}
+
+// ---------- Sprint 3: carrinho ----------
+function demonstrarCarrinho(): void {
+  titulo("Carrinho do cliente 1: adicionando itens");
+  adicionarAoCarrinho(1, 1, 2); // 2 teclados
+  adicionarAoCarrinho(1, 3, 1); // 1 monitor
+  mostrarCarrinho(1);
+
+  titulo("Adicionando de novo o produto 1 (soma na mesma linha)");
+  adicionarAoCarrinho(1, 1, 1);
+  mostrarCarrinho(1);
+
+  titulo("Alterando a quantidade do produto 3 para 2");
+  alterarQuantidade(1, 3, 2);
+  mostrarCarrinho(1);
+
+  titulo("Removendo o produto 3 do carrinho");
+  removerDoCarrinho(1, 3);
+  mostrarCarrinho(1);
+
+  titulo("Carrinho do cliente 2 (independente do cliente 1)");
+  adicionarAoCarrinho(2, 3, 3); // 899.90 x 3 = 2699.70
+  mostrarCarrinho(2);
+
+  titulo("Carrinho: situações inválidas");
+  testarInvalido("quantidade zero", () => adicionarAoCarrinho(1, 2, 0));
+  testarInvalido("quantidade negativa", () => adicionarAoCarrinho(1, 2, -3));
+  testarInvalido("quantidade fracionada", () => adicionarAoCarrinho(1, 2, 1.5));
+  testarInvalido("produto inexistente", () => adicionarAoCarrinho(1, 99, 1));
+  testarInvalido("quantidade acima do estoque", () => adicionarAoCarrinho(1, 4, 100));
+  testarInvalido("soma acima do estoque (já há 3 do produto 1)", () => adicionarAoCarrinho(1, 1, 13));
+  testarInvalido("cliente inexistente", () => adicionarAoCarrinho(99, 1, 1));
+  testarInvalido("alterar item que não está no carrinho", () => alterarQuantidade(1, 5, 2));
+  testarInvalido("remover item que não está no carrinho", () => removerDoCarrinho(1, 5));
+}
+
+console.log("Mini E-commerce");
+demonstrarProdutos();
+demonstrarClientes();
+demonstrarCarrinho();
