@@ -7,7 +7,7 @@ const carrinhos: Carrinho[] = [];
 
 // Arredonda para 2 casas decimais. Evita erros de ponto flutuante,
 // como 899.9 * 3 resultar em 2699.7000000000003.
-function arredondar(valor: number): number {
+export function arredondar(valor: number): number {
   return Math.round(valor * 100) / 100;
 }
 
@@ -122,4 +122,9 @@ export function listarItensCarrinho(clienteId: number): LinhaCarrinho[] {
 export function calcularTotal(clienteId: number): number {
   const total = listarItensCarrinho(clienteId).reduce((soma, linha) => soma + linha.subtotal, 0);
   return arredondar(total);
+}
+
+// Esvazia o carrinho do cliente (usado depois que o pedido é finalizado).
+export function limparCarrinho(clienteId: number): void {
+  obterCarrinho(clienteId).itens = [];
 }
